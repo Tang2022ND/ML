@@ -1,0 +1,221 @@
+---
+title: "Linear Regression Assignment"
+author: "Mendoza College of Business"
+date: "10/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Up
+
+```{r}
+load("spotify.rda") # Load data
+```
+
+
+The dataset we are using contains spotify songs from 2017 to 2020, the features in the data are:
+
+* Song.Name - The name of the song. 
+
+* Artist - The artist who the song is by.
+
+* Popularity- The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity of a track is a value between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are.
+
+* Danceability - Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.
+
+* Energy - Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy.
+
+* Loudness - The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db.
+
+* Speechiness - Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.
+
+* Acousticness - A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.
+
+* Liveness - Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live.
+
+* Tempo - The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.
+
+* Duration - The duration of the track in milliseconds.
+
+* Valence - A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).
+
+* Chord - The key the track is in.
+
+
+The objective of our analysis is to examine the characteristics of popular songs, so we will use `Popularity` as our response variable. 
+
+The song name and artist columns are unique identifiers for each of the rows in the data so we would want to leave them out when we are running models on the dataset:
+
+```{r}
+# Drop columns 1 and 2.
+spotify_model <- spotify[, c(3:13)]
+```
+
+
+# Assignment
+
+Please complete the following tasks and answer the following questions:
+
+
+* 1 - Create two visualizations which may reveal interesting relationships in the dataset. Describe what you see in the visualization. (2 Points) 
+
+```{r}
+library(ggplot2)
+duration_pop <- ggplot(data = spotify_model, aes(x = Duration, y = Popularity)) + 
+  geom_point(color = "dark blue", alpha = 0.4) +
+  geom_smooth(method = "lm") +
+    theme_bw() + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+duration_pop
+```
+The relationship between duration and popularity is positive and sort of linear
+
+```{r}
+ggplot(data = spotify_model, aes(x = Energy, y = Popularity, color = Chord)) + 
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = F) +
+    theme_bw() + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+
+```
+It's hard to tell the linear relationship between energy and popularity. However in Chord as categorical fill color, most of them have a positive linear relationship
+
+* 2 - Run a linear regression model on the dataset using `Popularity` as the response variable and all other variables in the model data as explanatory variables. (1 Point)
+
+```{r}
+lm_all <- lm(Popularity ~.,spotify_model)
+summary(lm_all)
+```
+
+
+
+* 3 - What features in the model were significant (At 10% level)? Do these variables have a positive or negative effect on a songs popularity? (1 Point)
+Loudness
+Duration
+Chord
+
+
+
+
+* 4 - Visualize two potential interaction terms and their relationship with the response variable. Are these interaction terms likely to have a significant relationship with the response variable? (2 Points)
+
+```{r}
+ggplot(data = spotify_model, aes(x = Duration, y = Popularity, color = Chord)) + 
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = F) + 
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+```
+
+* 5 - Fit a linear regression model with the two interaction terms included. (1 Point)
+
+```{r}
+lm2 <- lm(Popularity~Loudness + Chord, spotify_model)
+summary(lm2)
+lm2x <- lm(Popularity~Loudness * Chord, spotify_model)
+summary(lm2x)
+```
+
+
+* 6 - How has the inclusion of the interaction terms affected the coefficients in the model? How has the inclusion of interaction terms affected the model fit? (1 Point)
+The coefficient is smaller, for the interaction specifically, we can see Loudness:ChordA#/Bb has the highest positive coefficient as reflect by the above visualization.
+The interaction terms has little affection to the model's fit on the adjusted r^2 , but give it some boost to the multiple r^2. The significance from the loudness originally has been captured into other variables ex. Loudness:ChordA#/Bb.
+
+
+2 Points for code quality and analysis decisions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
